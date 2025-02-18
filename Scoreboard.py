@@ -75,6 +75,7 @@ class settingsWindow(QtW.QWidget):
 class ScoreBoard(QtW.QWidget):
     def __init__(self, Matchlist: dict):
         super().__init__()
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.setWindowFlags(Qt.FramelessWindowHint)
         Layout = QtW.QGridLayout(self)
         self.TeamLabel1 = QtW.QLabel(Matchlist["team1"], objectName="Title")
