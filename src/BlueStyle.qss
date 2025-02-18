@@ -116,7 +116,13 @@ QLabel#FigureLeft{
 }
 QLabel#Title{
 	font-size: 30px;
-	qproperty-alignment: AlignRight;
+	qproperty-alignment: AlignLeft;
+	font-style: bold;
+}
+
+QLabel#Score{
+	font-size: 30px;
+	qproperty-alignment: AlignCenter;
 	font-style: bold;
 }
 
