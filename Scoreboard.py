@@ -1,7 +1,7 @@
 import requests
 from PySide6 import QtWidgets as QtW
 from PySide6.QtCore import QThread, QTimer, Signal, QDate, QObject, QLocale, Qt
-from PySide6.QtGui import QShortcut, QKeySequence
+from PySide6.QtGui import QShortcut, QKeySequence, QColor
 
 
 class settingsWindow(QtW.QWidget):
@@ -32,6 +32,14 @@ class settingsWindow(QtW.QWidget):
         self.startScoreboardButton = QtW.QPushButton("Start scoreboard")
         self.startScoreboardButton.clicked.connect(self.toggleScoreboard)
         Layout.addWidget(self.startScoreboardButton, 3, 2, 1, 2)
+        self.colorpicker1 = QtW.QColorDialog()
+        self.colorpicker2 = QtW.QColorDialog()
+        self.colorButton1 = QtW.QPushButton("Team 1 Color")
+        self.colorButton2 = QtW.QPushButton("Team 2 Color")
+        self.colorButton1.clicked.connect(self.colorpicker1.exec)
+        self.colorButton2.clicked.connect(self.colorpicker2.exec)
+        Layout.addWidget(self.colorButton1, 4, 0, 1, 2)
+        Layout.addWidget(self.colorButton2, 4, 2, 1, 2)
 
         # while True:
         #     matchquery = (requests.get(f'https://api.nevobo.nl/{match["@id"]}/live', stream=True)).json()
@@ -46,7 +54,9 @@ class settingsWindow(QtW.QWidget):
         else:
             if self.MatchSelect.currentText() == "":
                 return
-            self.ActiveScoreboard = ScoreBoard(self.MatchList[self.MatchSelect.currentText()])
+            self.ActiveScoreboard = ScoreBoard(self.MatchList[self.MatchSelect.currentText()],
+                                               self.colorpicker1.currentColor(),
+                                               self.colorpicker2.currentColor())
             self.ActiveScoreboard.closeCommand.connect(self.toggleScoreboard)
             self.ActiveScoreboard.show()
             self.isScoreboardActive = True
@@ -74,21 +84,29 @@ class settingsWindow(QtW.QWidget):
 
 class ScoreBoard(QtW.QWidget):
     closeCommand = Signal()
-    def __init__(self, Matchlist: dict):
+    def __init__(self, Matchlist: dict, color1: QColor, color2: QColor):
         super().__init__()
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.setWindowFlags(Qt.FramelessWindowHint)
         Layout = QtW.QGridLayout(self)
+        self.TeamFrame1 = QtW.QFrame()
+        self.TeamFrame2 = QtW.QFrame()
+        self.TeamFrame1.setStyleSheet(f"background-color: {color1.name()}")
+        self.TeamFrame2.setStyleSheet(f"background-color: {color2.name()}")
         self.TeamLabel1 = QtW.QLabel(Matchlist["team1"], objectName="Title")
         self.TeamLabel2 = QtW.QLabel(Matchlist["team2"], objectName="Title")
+        frameLayout1 = QtW.QVBoxLayout(self.TeamFrame1)
+        frameLayout2 = QtW.QVBoxLayout(self.TeamFrame2)
+        frameLayout1.addWidget(self.TeamLabel1)
+        frameLayout2.addWidget(self.TeamLabel2)
         self.SetLabel1 = QtW.QLabel("0")
         self.SetLabel2 = QtW.QLabel("0")
         self.ScoreLabel1 = QtW.QLabel("0", objectName="Score")
         self.ScoreLabel2 = QtW.QLabel("0", objectName="Score")
-        Layout.addWidget(self.TeamLabel1, 0, 0)
+        Layout.addWidget(self.TeamFrame1, 0, 0)
         Layout.addWidget(self.SetLabel1, 0, 2)
         Layout.addWidget(self.ScoreLabel1, 0, 1)
-        Layout.addWidget(self.TeamLabel2, 1, 0)
+        Layout.addWidget(self.TeamFrame2, 1, 0)
         Layout.addWidget(self.SetLabel2, 1, 2)
         Layout.addWidget(self.ScoreLabel2, 1, 1)
         self.thread = QThread()
