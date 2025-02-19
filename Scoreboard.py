@@ -1,15 +1,13 @@
 import requests
-import time
-import datetime
 from PySide6 import QtWidgets as QtW
 from PySide6.QtCore import QThread, QTimer, Signal, QDate, QObject, QLocale, Qt
+from PySide6.QtGui import QShortcut, QKeySequence
 
 
 class settingsWindow(QtW.QWidget):
     isScoreboardActive = False
     def __init__(self):
         super().__init__()
-
         Layout = QtW.QGridLayout(self)
         self.MatchList = {}
         self.searchparams = {
@@ -34,6 +32,7 @@ class settingsWindow(QtW.QWidget):
         self.startScoreboardButton = QtW.QPushButton("Start scoreboard")
         self.startScoreboardButton.clicked.connect(self.toggleScoreboard)
         Layout.addWidget(self.startScoreboardButton, 3, 2, 1, 2)
+
         # while True:
         #     matchquery = (requests.get(f'https://api.nevobo.nl/{match["@id"]}/live', stream=True)).json()
         #     print(f"Stand: {matchquery["stand"][0]} - {matchquery["stand"][1]}")
@@ -48,6 +47,7 @@ class settingsWindow(QtW.QWidget):
             if self.MatchSelect.currentText() == "":
                 return
             self.ActiveScoreboard = ScoreBoard(self.MatchList[self.MatchSelect.currentText()])
+            self.ActiveScoreboard.closeCommand.connect(self.toggleScoreboard)
             self.ActiveScoreboard.show()
             self.isScoreboardActive = True
             self.startScoreboardButton.setText("Stop scoreboard")
@@ -73,6 +73,7 @@ class settingsWindow(QtW.QWidget):
 
 
 class ScoreBoard(QtW.QWidget):
+    closeCommand = Signal()
     def __init__(self, Matchlist: dict):
         super().__init__()
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
@@ -95,6 +96,8 @@ class ScoreBoard(QtW.QWidget):
         self.worker.QueryResult.connect(self.updateScores)
         self.thread.started.connect(self.worker.timer.start())
         self.thread.start()
+        self.SC = QShortcut(QKeySequence("Ctrl+o"), self)
+        self.SC.activated.connect(self.closeCommand.emit)
 
     def updateScores(self, result: dict):
         if "Error" in result:
